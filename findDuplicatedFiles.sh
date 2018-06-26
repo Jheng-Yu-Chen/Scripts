@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Purpose: find all duplicated files
-#
+# 2018/06/26
 
 DIRECTORY="/usr"
 
