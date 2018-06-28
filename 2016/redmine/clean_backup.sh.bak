@@ -1,0 +1,42 @@
+#!/bin/bash
+
+cd /for_backup
+#取得所有檔案
+FILES=`ls redmine_*`
+#取得目前系統的年份
+CURRENT_YEAR=`date +%Y`
+#取得目前系統的月份
+CURRENT_MONTH=`date +%m`
+#要保留幾個月內的資料(1-12)
+KEEP_MONTH=2
+
+#TODO:判斷KEEP_MONTH是否在範圍內
+
+#計算要從哪一個月份開始刪除
+TMP_MONTH=`echo $(( $CURRENT_MONTH - $KEEP_MONTH ))`
+#如果OLD_MONTH 小於等於 0 ，則 CURRENT_YEAR - 1
+if [ "$TMP_MONTH" -le 0 ]; then
+        THRESHOLD_YEAR=`echo $(( $CURRENT_YEAR - 1 ))`
+        THRESHOLD_MONTH=`echo $(( 12 + TMP_MONTH ))`
+else
+        THRESHOLD_YEAR=$CURRENT_YEAR
+        THRESHOLD_MONTH=$TMP_MONTH
+fi
+
+while read FILE
+do
+        #取得檔案年份與月份
+        DATE=`echo $FILE | cut -d'_' -f2 | cut -d'.' -f1`
+        FILE_YEAR=`date --date="$DATE" +%Y 2> /dev/null`
+        FILE_MONTH=`date --date="$DATE" +%m 2> /dev/null`
+
+        #跳過錯誤的檔案
+        if [ ! -z "$FILE_YEAR" ] || [ ! -z "$FILE_MONTH" ]; then
+                #刪除符合的檔案
+                if [ "$FILE_YEAR" -ne "$THRESHOLD_YEAR" ] || [ "$FILE_MONTH" -le "$THRESHOLD_MONTH" ]; then
+			echo ${FILE}
+                        \rm -f ${FILE}
+                fi
+        fi
+done <<< "$FILES"
+
